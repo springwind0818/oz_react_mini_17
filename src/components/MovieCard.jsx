@@ -3,9 +3,10 @@ import movieList from "../data/movieListData.json";
 import { useNavigate } from "react-router-dom";
 
 function MovieCard() {
-  const navigate = useNavigate();
+  const navigate = useNavigate();  //어디로 갈지 정하게 하는 함수 
 
   const handleMovieClick = () => {
+    //if (로그인성공) 다른 페이지로 이동하게 이런식으로 사용할때 useNavigate를 사용한다
     navigate('/details');
   };
 
