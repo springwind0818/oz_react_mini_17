@@ -1,34 +1,87 @@
 0306 
-1. TMDB API 키랑 액세스 토큰을 가져와서 새로운 env파일에 토큰추가.
-# .env 파일 내용
-VITE_TMDB_TOKEN = eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5ODk4ZmEzODYwYWJjYzBlMDMxOTAzYTM0Y2U5N2VjYiIsIm5iZiI6MTc3Mjc3ODQwMi43NjQsInN1YiI6IjY5YWE3M2EyOGNhNjlmN2NjNjE1MTc5NyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.eg6pnAaBTSIVD6fUeWTW-G0ZwU-rF0bP-2fbZae3dIU
 
-gitignore 파일 맨아래에 다음과같이 작성(이거 안하면 깃허브에 토큰이 올라감)
+순서 
+
+1. TMDB API 키랑 액세스 토큰을 가져와서 새로운 env파일에 토큰추가.
+
+
+
+
+
+2. gitignore 파일 맨아래에 다음과같이 작성(이거 안하면 깃허브에 토큰이 올라감)
 .env
 .env.local
 
-새로 apis폴더를 만들어서 tmdb.jsx파일을 만들고 그안에 아래내용을 작성. (이부분 공부해야함)
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////
-const token = import.meta.env.VITE_TMDB_TOKEN;
-
+3. 새로 apis폴더를 만들어서 tmdb.jsx파일을 만들고 그안에 아래내용을 작성. (이부분 공부해야함)
+이게 뭐냐면 토큰받은거 env에 작성했고 gitignore에 파일안올라가게 api키값 설정을했으니 이제
+그 영화리스트를 구현하게 만들 주소를 fetch시키고 거기에 
 export const getPopularMovies = async () => {
     const options = {
         method: 'GET',
         headers: {
+            // 요청 명세서 작성
             accept: 'application/json',
             Authorization: `Bearer ${token}`
         }
     };
 
-    const response = await fetch('https://api.themoviedb.org/3/movie/popular?language=ko-KR', options);
-    return response.json();
-}
+    이런식으로 옵션 변수에다 메소드 어떻게 할거고 여기서 json형태로 받아들이게하고 명세서(api토큰을 써서 구현되게끔 만들어야함) 입력하기
+    Bearer을 선언해서 내 명세서는 api토큰이다라고 선언하는거
+    (3. 왜 하필 Bearer라는 단어를 쓰기로 약속했나요?
+이것은 OAuth 2.0이라는 전 세계 표준 프로토콜에서 정한 규칙입니다.
+
+만약 Bearer라는 단어를 빼고 토큰값만 보낸다면, 서버는 이 긴 문자열이 아이디/비밀번호인지, Bearer 토큰인지, 아니면 다른 암호화 키인지 알 수가 없습니다.
+
+따라서 Bearer (한 칸 띄어쓰기 포함)를 앞에 붙여서 **"지금부터 나오는 문자열은 Bearer 타입의 액세스 토큰이다"**라고 명확히 가이드라인을 주는 것입니다.)
+
+그리고 try {
+        const response = await fetch('https://api.themoviedb.org/3/movie/popular?language=ko-KR&page=1', options);
+
+        // 응답이 성공(200번대)이 아닐 경우 에러 처리
+        if (!response.ok) {
+            throw new Error('데이터를 불러오는데 실패했습니다.');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("API Error:", error);
+    }
+이건 try catch문으로 에러를 잡는 코드인데 response 변수를 저렇게 선언해서 옵션을 2번째인자로 추가해서 fetch를 실행하는거임
+만약 options가 없으면 fetch를 실행할때 어떤식으로 메소드를 사용하고 명세서랑 받아들이는 방식이 무엇인지 몰라서 에러가 발생함.
+아무튼 그래서 if문 선언하고 만약ok가 아니라면 throw new Error('데이터를 불러오는데 실패했습니다.'); 이런형태가 나오게한후 바로 catch문으로 이동함.
+에러가 발생안하면 그냥 await response.json(); 이런식으로 데이터를 받아올수있게 함. 
+이게다 const getPopularMovies 이 함수안에 들어가서 home.jsx에 보낸다~~~
+
+4. 이제 home.jsx 파일을 만들거다. const [movies, setMovies] = useState([]); 처음에 이렇게 useState문을 사용한다.
+상세 설명: * API에서 영화 데이터를 가져오기 전까지 화면은 비어있어야 합니다. 그래서 처음엔 **빈 배열 []**로 시작합니다.
+
+movies는 현재 영화 데이터 그 자체이고, setMovies는 이 데이터를 교체할 때 사용하는 전용 함수입니다.
+
+리액트는 이 setMovies가 실행될 때만 "아, 화면을 새로 그려야겠구나!"라고 인지합니다.
+
+그리고 const navigate = useNavigate(); 이렇게 클릭하면 어디로 이동할지 이벤트를 만드는 useNavigate문도 선언한다.
+
+useEffect(() => {
+    const loadMovies = async () => {
+        const data = await getPopularMovies(); // 1. 가져오기  (tmbd.js에서 선언함)
+        if (data && data.results) {
+            const safeMovies = data.results.filter(m => !m.adult); // 2. 거르기
+            setMovies(safeMovies); // 3. 저장하기
+        }
+    };
+    loadMovies();
+}, []); // 4. 빈 배열(Dependency Array)
+
+상세 설명: * async/await: API 호출은 시간이 걸리는 작업입니다. 그래서 "기다려줄게(await)"라고 말하는 비동기 처리가 필요합니다.
+
+빈 배열 []: 이게 없으면 리액트는 1초에 수천 번씩 API를 호출하는 무한 루프에 빠질 수 있습니다. []를 넣어줌으로써 **"페이지가 처음 뜰 때 딱 한 번만 호출해!"**라고 못을 박는 것입니다.
+
+
+
+
+
+
+
 
 여기서 
 const token = import.meta.env.VITE_TMDB_TOKEN; 이코드에서 meta는
@@ -110,6 +163,64 @@ setMovies(data.results): data 안에 results라는 목록이 아예 없으므로
 options 포함: "여기 제 예약권(Token) 있고요, 메뉴는 코스 요리(JSON)로 주세요." -> 식사 성공!
 
 options 제외: (예약 전용 식당에) 그냥 들어가서 식탁에 앉음. -> 웨이터가 "예약 손님만 가능합니다. 나가주세요"라며 쫓아냄.
+
+const { id } = useParams();
+해석: "주소창에 :id 자리에 써있는 번호를 가져와서 id라는 변수에 담아줘!"라는 뜻입니다.
+
+중요: 이 id가 있어야만 API에 "전체 목록 말고, 이 ID 번호에 해당하는 영화 정보만 줘!"라고 요청할 수 있습니다.
+
+// App.jsx
+<Route path="/movie/:id" element={<MovieDetail />} />
+**:id**의 의미: "앞으로 /movie/ 뒤에 오는 모든 글자는 id라는 이름의 변수에 담아두겠다"는 약속입니다.
+
+// Home.jsx
+const navigate = useNavigate();
+
+const handleMovieClick = (movieId) => {
+  // 만약 movieId가 550이라면, 주소는 "/movie/550"이 됩니다.
+  navigate(`/movie/${movieId}`);
+};
+실행 결과: 브라우저 주소창이 localhost:3000/movie/550으로 바뀝니다.
+
+3단계: 데이터 낚아채기 (MovieDetail.jsx)
+이제 상세 페이지에 도착한 useParams가 주소창에서 번호를 뽑아옵니다.
+
+JavaScript
+// MovieDetail.jsx
+import { useParams } from "react-router-dom";
+
+function MovieDetail() {
+  // useParams()는 { id: "550" } 이라는 객체를 반환합니다.
+  const { id } = useParams(); 
+
+  console.log(id); // 결과: "550"
+  
+  return <div>현재 영화 ID는 {id}입니다.</div>;
+
+  왜 이렇게 복잡하게 하나요? (예시 상황)
+쇼핑몰 사이트를 만든다고 상상해 보세요. 상품이 1만 개가 넘는데, 상세 페이지(ProductDetail.jsx)를 1만 개나 만들 순 없겠죠?
+
+하나의 템플릿(MovieDetail.jsx)만 만듭니다.
+
+사용자가 클릭한 상품의 번호만 주소창에 슬쩍 끼워 넣습니다.
+
+상세 페이지는 useParams로 그 번호만 읽어서, 그 번호에 맞는 데이터만 서버(API)에 요청해서 보여주는 방식입니다.
+
+
+
+주소창 확인: 주소가 /movie/789 인 것을 확인.
+
+변수 추출: const { id } = useParams(); 를 통해 id에 "789" 저장.
+
+서버 요청 (useEffect):
+
+JavaScript
+useEffect(() => {
+  // "789번 영화 정보 좀 보내주세요!"
+  fetch(`https://api.tmdb.org/3/movie/${id}?api_key=...`)
+    .then(res => res.json())
+    .then(data => setMovie(data));
+}, [id]); // id가 바뀌면(다른 영화 클릭) 다시 가져옴
 
 
 
