@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# .gitignore 파일 내용
+.env
+.env.local
