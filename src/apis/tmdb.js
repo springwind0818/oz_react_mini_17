@@ -1,47 +1,29 @@
-// src/apis/tmdb.js (파일을 새로 만드셔도 되고, Home.jsx 상단에 두셔도 됩니다)
-
 const token = import.meta.env.VITE_TMDB_TOKEN;
+const BASE_URL = 'https://api.themoviedb.org/3';
 
-export const getPopularMovies = async () => {
-    const options = {
-        method: 'GET',
-        headers: {
-            // 요청 명세서 작성
-            accept: 'application/json',
-            Authorization: `Bearer ${token}`
-        }
-    };
-
-    try {
-        const response = await fetch('https://api.themoviedb.org/3/movie/popular?language=ko-KR&page=1', options);
-
-        // 응답이 성공(200번대)이 아닐 경우 에러 처리
-        if (!response.ok) {
-            throw new Error('데이터를 불러오는데 실패했습니다.');
-        }
-
-
-
-        return await response.json();
-    } catch (error) {
-        console.error("API Error:", error);
+const options = {
+    method: 'GET',
+    headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${token}`
     }
 };
 
-export const getMovieDetail = async (id) => {
-    const options = {
-        method: 'GET',
-        headers: {
-            accept: 'application/json',
-            Authorization: `Bearer ${token}`
-        }
-    };
+// 인기 영화 리스트
+export const getPopularMovies = async () => {
+    const response = await fetch(`${BASE_URL}/movie/popular?language=ko-KR&page=1`, options);
+    return await response.json();
+};
 
-    try {
-        const response = await fetch(`https://api.themoviedb.org/3/movie/${id}?language=ko-KR`, options);
-        if (!response.ok) throw new Error('상세 데이터를 불러오는데 실패했습니다.');
-        return await response.json();
-    } catch (error) {
-        console.error("Detail API Error:", error);
-    }
+// 영화 상세 정보
+export const getMovieDetail = async (id) => {
+    const response = await fetch(`${BASE_URL}/movie/${id}?language=ko-KR`, options);
+    return await response.json();
+};
+
+// 🔥 추가: 영화 검색 (검색어 기반)
+export const searchMovies = async (query) => {
+    if (!query) return null;
+    const response = await fetch(`${BASE_URL}/search/movie?query=${query}&include_adult=false&language=ko-KR&page=1`, options);
+    return await response.json();
 };
