@@ -33,7 +33,7 @@ const SearchPage = () => {
     }, [keyword]);
 
     return (
-        <div className="p-6 bg-black min-h-screen text-white">
+        <div id="search" className="p-6 bg-black min-h-screen text-white">
             <h2 className="text-xl mb-4">"{keyword}" 검색 결과</h2>
             
             {isLoading ? (

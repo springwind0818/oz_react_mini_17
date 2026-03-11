@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDebounce } from '../hooks/useDebounce';
-import Login from '../pages/Login';
-import SignUp from '../pages/SignUp';
 
 export default function NavBar() {
     const [keyword, setKeyword] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
-    const debouncedSearchTerm = useDebounce(keyword, 500); // 1초는 너무 기니까 0.5초로 조절!
 
+    const debouncedSearchTerm = useDebounce(keyword, 1000); 
     const isDebouncing = keyword.trim() !== debouncedSearchTerm.trim() && keyword.trim().length > 0;
 
     useEffect(() => {

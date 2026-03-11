@@ -1,0 +1,24 @@
+@media screen and (max-width: 768px) {
+    #home .row{
+        flex-direction: column;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    #home .row{
+        flex-direction: column;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    #search .row{
+        flex-direction: column;
+    }
+}
+
+
+@media screen and (max-width: 480px) {
+    #search .row{
+        flex-direction: column;
+    }
+}
