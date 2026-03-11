@@ -3,6 +3,8 @@ import Home from "./pages/Home";
 import MovieDetail from "./pages/MovieDetail";
 import SearchPage from "./pages/SearchPage";
 import Layout from "./components/Layout";
+import Login from "./pages/Login.jsx";
+import SignUp from "./pages/SignUp.jsx";
 
 function App() {
   return (
@@ -11,6 +13,8 @@ function App() {
         <Route index element={<Home />} />
         <Route path="movie/:id" element={<MovieDetail />} />
         <Route path="search" element={<SearchPage />} />
+        <Route path="login" element={<Login />} />
+        <Route path="signup" element={<SignUp />} />
       </Route>
     </Routes>
   );

@@ -1,52 +1,57 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
+import Login from '../pages/Login';
+import SignUp from '../pages/SignUp';
 
 export default function NavBar() {
     const [keyword, setKeyword] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+    const debouncedSearchTerm = useDebounce(keyword, 500); // 1초는 너무 기니까 0.5초로 조절!
 
-    const handleSearch = (e) => {
-        e.preventDefault();
+    const isDebouncing = keyword.trim() !== debouncedSearchTerm.trim() && keyword.trim().length > 0;
 
-        // 핵심 수정 부분: 공백 제거 후 길이를 체크합니다.
-        const trimmedKeyword = keyword.trim();
-
-        if (trimmedKeyword.length >= 2) {
-            // 2글자 이상일 때만 검색 페이지로 이동!
-            navigate(`/search?query=${trimmedKeyword}`);
-            setKeyword('');
-        } else if (trimmedKeyword.length === 1) {
-            // 1글자만 입력했을 때 알려주기 (선택 사항)
-            alert('검색어는 2글자 이상 입력해주세요!');
+    useEffect(() => {
+        const term = debouncedSearchTerm.trim();
+        
+        // 핵심 조건: 검색어가 2글자 이상이고, 
+        // 현재 내가 '검색 결과'를 보려고 하는 상황(또는 메인/상세에서 검색 시작)일 때만 이동
+        if (term.length >= 2 && !location.pathname.startsWith('/movie')) {
+            navigate(`/search?query=${term}`);
+        } else if (term.length === 0 && location.pathname === '/search') {
+            // 검색어를 다 지우면 메인으로 보내기 (선택 사항)
+            navigate('/');
         }
-    };
-
+    }, [debouncedSearchTerm, navigate, location.pathname]); 
     return (
-        <nav className="flex justify-between items-center p-4 bg-gray-900 text-white shadow-lg">
+        <nav className="flex justify-between items-center p-4 bg-gray-900 text-white shadow-lg sticky top-0 z-50">
             <div className="text-2xl font-bold text-red-600">
-                <Link to="/">오즈 무비</Link>
+                <Link to="/" onClick={() => setKeyword('')}>오즈 무비</Link>
             </div>
 
-            <form onSubmit={handleSearch} className="flex flex-1 max-w-md mx-4">
+            <div className="flex flex-1 max-w-md mx-4 relative">
                 <input
                     type="text"
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
-
-                    className="w-full px-4 py-2 text-black bg-white outline-none focus:ring-2 focus:ring-red-500"
+                    placeholder="영화 제목을 입력하세요..."
+                    className="w-full px-4 py-2 text-black bg-white outline-none focus:ring-2 focus:ring-red-500 rounded"
                 />
-                <button
-                    type="submit"
-                    className="bg-red-600 px-6 py-2 font-bold hover:bg-red-700 transition"
-                >
-                    검색
-                </button>
-            </form>
-
-            {/* 오른쪽 빈 영역: 왼쪽 로고 영역과 똑같은 너비(w-48)를 주어 좌우 균형을 맞춥니다. */}
-            <div className="flex-shrink-0 w-48 hidden md:block">
-                {/* 만약 나중에 로그인 버튼이나 홈 버튼을 넣고 싶다면 여기에 넣으세요! */}
+                
+                {isDebouncing && (
+                    <div className="absolute right-2 top-2 text-xs text-gray-500 animate-pulse bg-white px-2 py-1">
+                        대기 중...
+                    </div>
+                )}
             </div>
+
+            <div className="flex gap-4">
+                <Link to="/login" className="text-gray-300 hover:text-white transition">로그인</Link>
+                <Link to="/signup" className="text-gray-300 hover:text-white transition">회원가입</Link>
+            </div>
+
+            <div className="w-48 hidden md:block"></div>
         </nav>
     );
 }
